@@ -487,4 +487,9 @@ async def handler(event):
 # Start the RunPod serverless worker
 if __name__ == "__main__":
     print("🚀 Starting RunPod Whisper Training Handler...")
-    runpod.serverless.start({"handler": handler})
+    try:
+        runpod.serverless.start({"handler": handler})
+    except Exception as e:
+        print(f"❌ Failed to start handler: {e}")
+        import traceback
+        traceback.print_exc()
