@@ -395,8 +395,31 @@ async def run_training(*, base_model: str, epochs: int, project_id: str, user_id
             "timestamp": datetime.now().isoformat()
         })
         
-        # Train with automatic checkpoint recovery
-        train_result = trainer.train(resume_from_checkpoint=True)
+        # Train with checkpoint recovery only if a checkpoint exists
+        resume_from_checkpoint_path = None
+        try:
+            if os.path.isdir(checkpoints_dir):
+                # Find latest checkpoint directory if any
+                checkpoint_dirs = [
+                    d for d in os.listdir(checkpoints_dir)
+                    if str(d).startswith("checkpoint-") and (checkpoints_dir / d).is_dir()
+                ]
+                if checkpoint_dirs:
+                    # Sort by step number and pick the latest
+                    def _step(d):
+                        try:
+                            return int(str(d).split("checkpoint-")[-1])
+                        except Exception:
+                            return -1
+                    latest = sorted(checkpoint_dirs, key=_step)[-1]
+                    resume_from_checkpoint_path = str(checkpoints_dir / latest)
+                    logger.info(f"🧭 Resuming from checkpoint: {resume_from_checkpoint_path}")
+        except Exception as e:
+            logger.warning(f"Could not scan checkpoints: {e}")
+
+        train_result = trainer.train(
+            resume_from_checkpoint=resume_from_checkpoint_path if resume_from_checkpoint_path else None
+        )
         
         logger.info("✅ Training completed!")
         progress_tracker.send_progress({
