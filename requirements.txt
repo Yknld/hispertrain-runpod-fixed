@@ -1,0 +1,17 @@
+runpod==1.7.13
+transformers>=4.41.0
+torch
+torchaudio
+datasets>=2.18.0
+accelerate>=0.31.0
+sentencepiece>=0.1.99
+soundfile>=0.12.1
+jiwer>=3.0.0
+huggingface-hub>=0.24.0
+numpy>=1.23
+scipy>=1.9
+pandas>=2.0
+psutil>=5.9.0
+wandb
+tensorboard
+httpx>=0.27.0
