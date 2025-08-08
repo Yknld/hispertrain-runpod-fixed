@@ -270,26 +270,33 @@ async def run_training(*, base_model: str, epochs: int, project_id: str, user_id
         # 2) Dataset preparation with progress tracking
         progress_tracker.send_progress({"status": "preparing_dataset", "timestamp": datetime.now().isoformat()})
         logger.info("📊 Creating dataset...")
-        
-        from datasets import Dataset
-        
-        # TODO: Replace with real dataset from your project
-        # This should fetch VTT/audio files from backend_base_url using auth_token
-        # For now, using dummy data that mimics real training
-        
-        # Create more realistic dummy data for testing
-        dummy_input_length = 50  # Simulate longer sequences
-        train_samples = 100  # Simulate multiple training samples
-        eval_samples = 20   # Simulate evaluation samples
-        
-        train_dataset = Dataset.from_dict({
-            "input_ids": [[i % 1000 for i in range(dummy_input_length)] for _ in range(train_samples)],
-            "labels": [[i % 1000 for i in range(dummy_input_length)] for _ in range(train_samples)]
-        })
-        eval_dataset = Dataset.from_dict({
-            "input_ids": [[i % 1000 for i in range(dummy_input_length)] for _ in range(eval_samples)],
-            "labels": [[i % 1000 for i in range(dummy_input_length)] for _ in range(eval_samples)]
-        })
+
+        # For Whisper, the model expects `input_features` (log-mel spectrograms) and `labels` (token IDs).
+        # Until we wire real audio + transcripts, use a minimal dummy PyTorch dataset with correct shapes.
+        import torch
+        from torch.utils.data import Dataset as TorchDataset
+
+        class WhisperDummyDataset(TorchDataset):
+            def __init__(self, num_samples: int, feature_frames: int = 3000, label_len: int = 64):
+                self.num_samples = num_samples
+                self.feature_frames = feature_frames
+                self.label_len = label_len
+
+            def __len__(self):
+                return self.num_samples
+
+            def __getitem__(self, idx):
+                # input_features: (80, frames) float32
+                input_features = torch.zeros(80, self.feature_frames, dtype=torch.float32)
+                # labels: fixed-length int64 tokens (non -100 so loss computes)
+                labels = torch.randint(low=1, high=1000, size=(self.label_len,), dtype=torch.long)
+                return {"input_features": input_features, "labels": labels}
+
+        train_samples = 64
+        eval_samples = 16
+
+        train_dataset = WhisperDummyDataset(train_samples)
+        eval_dataset = WhisperDummyDataset(eval_samples)
         
         progress_tracker.send_progress({
             "status": "dataset_ready",
@@ -360,11 +367,21 @@ async def run_training(*, base_model: str, epochs: int, project_id: str, user_id
         callback = TrainingCallback(progress_tracker, epochs)
         
         # Create trainer with callback
+        # Provide a data collator to handle dict batches with tensors
+        def data_collator(features):
+            # Convert list of dicts into batch tensors
+            input_features = torch.stack([f["input_features"] for f in features])  # (B, 80, T)
+            labels = torch.nn.utils.rnn.pad_sequence(
+                [f["labels"] for f in features], batch_first=True, padding_value=-100
+            )
+            return {"input_features": input_features, "labels": labels}
+
         trainer = Trainer(
             model=model,
             args=args,
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
+            data_collator=data_collator,
             callbacks=[callback],
         )
 
@@ -375,9 +392,9 @@ async def run_training(*, base_model: str, epochs: int, project_id: str, user_id
             "configuration": {
                 "epochs": epochs,
                 "batch_size": args.per_device_train_batch_size,
-                "learning_rate": args.learning_rate,
-                "save_steps": args.save_steps,
-                "eval_steps": args.eval_steps
+                "learning_rate": float(args.learning_rate),
+                "save_steps": int(getattr(args, "save_steps", 0) or 0),
+                "eval_steps": int(getattr(args, "eval_steps", 0) or 0)
             },
             "system_stats": get_system_stats(),
             "timestamp": datetime.now().isoformat()
