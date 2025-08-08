@@ -311,36 +311,36 @@ async def run_training(*, base_model: str, epochs: int, project_id: str, user_id
         for dir_path in [checkpoints_dir, logs_dir, final_dir]:
             dir_path.mkdir(parents=True, exist_ok=True)
         
-        # Enhanced training arguments with comprehensive checkpointing
+        # GPU throttling prevention: Optimized training arguments
         # Build TrainingArguments robustly for older transformers versions
         def build_training_args() -> TrainingArguments:
             try:
                 return TrainingArguments(
                     output_dir=str(checkpoints_dir),
-                    per_device_train_batch_size=1,
+                    per_device_train_batch_size=1,  # Small batch to reduce memory
                     per_device_eval_batch_size=1,
                     num_train_epochs=max(1, int(epochs)),
-                    learning_rate=2e-5,
-                    warmup_steps=50,
+                    learning_rate=5e-6,  # Lower learning rate for stability
+                    warmup_steps=10,     # Fewer warmup steps
                     weight_decay=0.01,
-                    fp16=torch.cuda.is_available(),
+                    fp16=True,           # Always use fp16 for efficiency
                     dataloader_pin_memory=False,
                     dataloader_num_workers=0,
-                    gradient_accumulation_steps=2,
+                    gradient_accumulation_steps=4,  # Accumulate more to reduce frequency
                     save_strategy="steps",
-                    save_steps=50,
-                    save_total_limit=5,
+                    save_steps=25,       # Save more frequently
+                    save_total_limit=3,  # Keep fewer checkpoints
                     evaluation_strategy="steps",
-                    eval_steps=50,
+                    eval_steps=25,       # Eval more frequently but short
                     logging_strategy="steps",
-                    logging_steps=10,
+                    logging_steps=5,     # Log frequently for monitoring
                     logging_dir=str(logs_dir),
                     report_to=[],
                     ignore_data_skip=False,
-                    prediction_loss_only=False,
-                    load_best_model_at_end=True,
-                    metric_for_best_model="eval_loss",
-                    greater_is_better=False,
+                    prediction_loss_only=True,  # Skip extra metrics to save compute
+                    load_best_model_at_end=False,  # Skip to save time
+                    max_steps=100,       # Limit total steps to prevent throttling
+                    dataloader_drop_last=True,
                 )
             except TypeError:
                 # Fallback for older versions without evaluation/logging/save strategy arguments
@@ -380,6 +380,18 @@ async def run_training(*, base_model: str, epochs: int, project_id: str, user_id
                 "eval_steps": args.eval_steps
             },
             "system_stats": get_system_stats(),
+            "timestamp": datetime.now().isoformat()
+        })
+        
+        # GPU memory cleanup before training
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1024**3
+            logger.info(f"🖥️ GPU Memory: {gpu_memory:.1f}GB total")
+            
+        progress_tracker.send_progress({
+            "status": "starting_training",
+            "gpu_memory_gb": gpu_memory if torch.cuda.is_available() else 0,
             "timestamp": datetime.now().isoformat()
         })
         
