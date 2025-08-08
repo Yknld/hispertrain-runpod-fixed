@@ -13,3 +13,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the actual handler
 COPY handler.py /handler.py
+
+# RunPod serverless entry point
+CMD ["python", "/handler.py"]
