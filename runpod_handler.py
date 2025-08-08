@@ -273,7 +273,6 @@ async def run_training(*, base_model: str, epochs: int, project_id: str, user_id
 
         # For Whisper, the model expects `input_features` (log-mel spectrograms) and `labels` (token IDs).
         # Until we wire real audio + transcripts, use a minimal dummy PyTorch dataset with correct shapes.
-        import torch
         from torch.utils.data import Dataset as TorchDataset
 
         class WhisperDummyDataset(TorchDataset):
