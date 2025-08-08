@@ -3,7 +3,13 @@
 Simple RunPod handler for testing
 """
 
+import os
+import sys
+
 print("🚀 Starting Simple Handler...")
+print(f"📋 Python version: {sys.version}")
+print(f"📋 Working directory: {os.getcwd()}")
+print(f"📋 Python path: {sys.path}")
 
 def handler(event):
     """Simple test handler"""
@@ -19,24 +25,22 @@ def handler(event):
         import transformers
         print(f"✅ Transformers version: {transformers.__version__}")
         
+        # Get job input
+        job_input = event.get("input", {})
+        print(f"📋 Job input: {job_input}")
+        
         return {
-            "status": "COMPLETED",
-            "output": {
-                "message": "Handler working successfully!",
-                "torch_version": torch.__version__,
-                "cuda_available": torch.cuda.is_available()
-            }
+            "message": "Handler working successfully!",
+            "torch_version": torch.__version__,
+            "cuda_available": torch.cuda.is_available(),
+            "transformers_version": transformers.__version__
         }
     except Exception as e:
         print(f"❌ Error in handler: {e}")
         import traceback
         traceback.print_exc()
-        return {
-            "status": "FAILED",
-            "error": str(e)
-        }
+        raise e
 
-if __name__ == "__main__":
-    print("📋 Starting RunPod serverless...")
-    import runpod
-    runpod.serverless.start({"handler": handler})
+# RunPod serverless entry point
+import runpod
+runpod.serverless.start({"handler": handler})

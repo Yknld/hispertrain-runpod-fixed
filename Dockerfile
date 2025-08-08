@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 
 # Set working directory
-WORKDIR /app
+WORKDIR /
 
 # Copy requirements and install dependencies
 COPY requirements.txt .
@@ -14,5 +14,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Set the handler
-CMD ["python", "handler_simple.py"]
+# Make handler executable
+RUN chmod +x handler_simple.py
+
+# RunPod expects the handler at the root with this name
+COPY handler_simple.py handler.py
