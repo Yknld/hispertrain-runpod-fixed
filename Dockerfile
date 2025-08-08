@@ -11,8 +11,9 @@ WORKDIR /
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the actual handler
+# Copy the handler and training module
 COPY handler.py /handler.py
+COPY runpod_handler.py /runpod_handler.py
 
 # RunPod serverless entry point
 CMD ["python", "/handler.py"]
