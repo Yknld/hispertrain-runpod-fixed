@@ -15,4 +15,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Set the handler
-CMD ["python", "handler.py"]
+CMD ["python", "handler_simple.py"]
