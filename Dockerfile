@@ -19,3 +19,12 @@ RUN chmod +x handler_simple.py
 
 # RunPod expects the handler at the root with this name
 COPY handler_simple.py handler.py
+
+# Add startup logging
+RUN echo "#!/bin/bash" > /start.sh && \
+    echo "echo '🚀 Container starting...'" >> /start.sh && \
+    echo "echo '📋 Files in root:'" >> /start.sh && \
+    echo "ls -la /" >> /start.sh && \
+    echo "echo '📋 Starting Python handler...'" >> /start.sh && \
+    echo "python /handler.py" >> /start.sh && \
+    chmod +x /start.sh

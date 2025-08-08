@@ -5,11 +5,13 @@ Simple RunPod handler for testing
 
 import os
 import sys
+import time
 
-print("🚀 Starting Simple Handler...")
-print(f"📋 Python version: {sys.version}")
-print(f"📋 Working directory: {os.getcwd()}")
-print(f"📋 Python path: {sys.path}")
+print("🚀 Starting Simple Handler...", flush=True)
+print(f"📋 Python version: {sys.version}", flush=True)
+print(f"📋 Working directory: {os.getcwd()}", flush=True)
+print(f"📋 Python path: {sys.path}", flush=True)
+print(f"📋 Current time: {time.strftime('%Y-%m-%d %H:%M:%S')}", flush=True)
 
 def handler(event):
     """Simple test handler"""
@@ -42,5 +44,8 @@ def handler(event):
         raise e
 
 # RunPod serverless entry point
+print("📋 Importing runpod...", flush=True)
 import runpod
+print("📋 Starting runpod serverless...", flush=True)
 runpod.serverless.start({"handler": handler})
+print("📋 RunPod serverless started!", flush=True)
