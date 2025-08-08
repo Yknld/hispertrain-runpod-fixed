@@ -6,6 +6,7 @@ Professional Whisper model training with comprehensive analytics and monitoring.
 Designed for RunPod serverless deployment with real-time progress tracking.
 """
 
+print("📋 Importing basic modules...")
 import asyncio
 import os
 import json
@@ -15,6 +16,7 @@ from pathlib import Path
 from typing import Dict, Any, List
 from datetime import datetime
 
+print("📋 Setting up logging...")
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
@@ -26,20 +28,44 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# All dependencies are pre-installed via the container image requirements.
+print("📋 Importing heavy ML libraries...")
+try:
+    import torch
+    print("✅ PyTorch imported")
+except Exception as e:
+    print(f"❌ Failed to import torch: {e}")
+    raise
 
-import torch
-from transformers import (
-    WhisperProcessor,
-    WhisperForConditionalGeneration,
-    Trainer,
-    TrainingArguments,
-    TrainerCallback,
-    TrainerState,
-    TrainerControl
-)
-import runpod
-import psutil
+try:
+    from transformers import (
+        WhisperProcessor,
+        WhisperForConditionalGeneration,
+        Trainer,
+        TrainingArguments,
+        TrainerCallback,
+        TrainerState,
+        TrainerControl
+    )
+    print("✅ Transformers imported")
+except Exception as e:
+    print(f"❌ Failed to import transformers: {e}")
+    raise
+
+try:
+    import runpod
+    print("✅ RunPod imported in handler")
+except Exception as e:
+    print(f"❌ Failed to import runpod in handler: {e}")
+    raise
+
+try:
+    import psutil
+    print("✅ psutil imported")
+except Exception as e:
+    print(f"❌ Failed to import psutil: {e}")
+    raise
+
+print("✅ All imports successful in runpod_handler.py")
 
 
 class ProgressTracker:
