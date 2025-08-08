@@ -3,13 +3,12 @@
 RunPod Serverless Handler for Whisper Training
 """
 
-import asyncio
 import runpod
 from datetime import datetime
 
 
-def handler(event):
-    """Main RunPod serverless handler function"""
+async def handler(event):
+    """Main RunPod serverless handler function (async)."""
     print(f"🚀 Handler started at {datetime.now()}", flush=True)
     print(f"📋 Received event: {event}", flush=True)
 
@@ -29,19 +28,17 @@ def handler(event):
             flush=True,
         )
 
-        # Import training coroutine and run it
+        # Import training coroutine and await it
         from runpod_handler import run_training
 
-        result = asyncio.run(
-            run_training(
-                base_model=model_id,
-                epochs=epochs,
-                project_id=project_id,
-                user_id=user_id,
-                backend_base_url=backend_base_url,
-                auth_token=auth_token,
-                worker_api_key=worker_api_key,
-            )
+        result = await run_training(
+            base_model=model_id,
+            epochs=epochs,
+            project_id=project_id,
+            user_id=user_id,
+            backend_base_url=backend_base_url,
+            auth_token=auth_token,
+            worker_api_key=worker_api_key,
         )
 
         print("✅ Training completed successfully", flush=True)
