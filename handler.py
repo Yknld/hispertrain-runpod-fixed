@@ -1,34 +1,63 @@
 #!/usr/bin/env python3
 """
-RunPod serverless entrypoint at repository root.
-Imports the actual handler from runpod_handler.py (repo has flat structure).
+RunPod Serverless Handler for Whisper Training
 """
 
-print("🚀 Starting RunPod Whisper Training Handler...")
+import os
+import sys
+import logging
+import runpod
+from datetime import datetime
 
-try:
-    print("📋 Step 1: Importing runpod...")
-    import runpod
-    print("✅ RunPod imported successfully")
-    
-    print("📋 Step 2: Importing handler...")
-    from runpod_handler import handler
-    print("✅ Handler imported successfully")
-    
-    print("📋 Step 3: Starting serverless...")
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def handler(event):
+    """Main RunPod serverless handler function"""
+    try:
+        print(f"🚀 Handler started at {datetime.now()}", flush=True)
+        print(f"📋 Received event: {event}", flush=True)
+        
+        # Extract input parameters
+        input_data = event.get('input', {})
+        model = input_data.get('model', 'openai/whisper-tiny')
+        epochs = input_data.get('epochs', 1)
+        project = input_data.get('project', 'unknown')
+        backend_url = input_data.get('backend_url', '')
+        auth_token = input_data.get('auth_token', '')
+        worker_api_key = input_data.get('worker_api_key', '')
+        
+        print(f"📋 Training parameters: model={model}, epochs={epochs}, project={project}", flush=True)
+        
+        # Import training modules here to avoid early import issues
+        from runpod_handler import train_whisper_model, ProgressTracker
+        
+        # Create progress tracker
+        progress_tracker = ProgressTracker(
+            backend_url=backend_url,
+            job_id=f"train_{project}_{int(datetime.now().timestamp())}",
+            auth_token=auth_token,
+            worker_api_key=worker_api_key
+        )
+        
+        # Start training
+        result = train_whisper_model(
+            model_name=model,
+            epochs=epochs,
+            project_id=project,
+            progress_tracker=progress_tracker
+        )
+        
+        print(f"✅ Training completed successfully", flush=True)
+        return {"success": True, "result": result}
+        
+    except Exception as e:
+        error_msg = f"❌ Training failed: {str(e)}"
+        print(error_msg, flush=True)
+        logging.error(error_msg, exc_info=True)
+        return {"success": False, "error": str(e)}
+
+# Start the RunPod serverless worker
+if __name__ == "__main__":
+    print("🚀 Starting RunPod Serverless Worker...", flush=True)
     runpod.serverless.start({"handler": handler})
-    
-except ImportError as e:
-    print(f"❌ Import Error: {e}")
-    print("📋 Checking available modules...")
-    import os
-    print(f"Working directory: {os.getcwd()}")
-    print(f"Files in directory: {os.listdir('.')}")
-    import sys
-    print(f"Python path: {sys.path}")
-    raise
-except Exception as e:
-    print(f"❌ General Error: {e}")
-    import traceback
-    traceback.print_exc()
-    raise

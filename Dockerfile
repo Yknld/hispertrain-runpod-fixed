@@ -11,12 +11,5 @@ WORKDIR /
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
-
-# Create a simple handler.py that RunPod will auto-detect
-RUN echo 'import runpod' > /handler.py && \
-    echo 'def handler(event):' >> /handler.py && \
-    echo '    print(f"📋 Received event: {event}")' >> /handler.py && \
-    echo '    return {"message": "Hello from RunPod!"}' >> /handler.py && \
-    echo 'runpod.serverless.start({"handler": handler})' >> /handler.py
+# Copy the actual handler
+COPY handler.py /handler.py
