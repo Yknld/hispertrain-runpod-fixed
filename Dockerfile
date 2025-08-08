@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-devel
 
 # Set environment variables
@@ -6,6 +7,11 @@ ENV PYTHONUNBUFFERED=1
 
 # Set working directory
 WORKDIR /
+
+# Early build diagnostics
+RUN echo "🏗️ Starting Docker build..." && \
+    echo "Base image: pytorch/pytorch:2.1.0-cuda12.1-cudnn8-devel" && \
+    python -V && pip --version
 
 # Copy requirements and install dependencies
 COPY requirements.txt .
