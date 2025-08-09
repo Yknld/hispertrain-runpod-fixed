@@ -329,7 +329,7 @@ async def run_training(*, base_model: str, epochs: int, project_id: str, user_id
                     learning_rate=5e-6,  # Lower learning rate for stability
                     warmup_steps=10,     # Fewer warmup steps
                     weight_decay=0.01,
-                    fp16=True,           # Always use fp16 for efficiency
+                    fp16=False,          # Disable fp16 to avoid gradient scaling issues
                     dataloader_pin_memory=False,
                     dataloader_num_workers=0,
                     gradient_accumulation_steps=4,  # Accumulate more to reduce frequency
@@ -356,7 +356,7 @@ async def run_training(*, base_model: str, epochs: int, project_id: str, user_id
                     per_device_eval_batch_size=1,
                     num_train_epochs=max(1, int(epochs)),
                     learning_rate=2e-5,
-                    fp16=torch.cuda.is_available(),
+                    fp16=False,  # Disable fp16 for stability
                     logging_steps=10,
                 )
 
