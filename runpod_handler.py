@@ -255,7 +255,7 @@ async def run_training(*, base_model: str, epochs: int, project_id: str, user_id
         processor = WhisperProcessor.from_pretrained(base_model)
         model = WhisperForConditionalGeneration.from_pretrained(
             base_model,
-            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+            torch_dtype=torch.float32,  # Use float32 to match training args
             low_cpu_mem_usage=True,
         )
         logger.info("✅ Model loaded successfully")
