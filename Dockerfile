@@ -15,11 +15,20 @@ RUN echo "🏗️ Starting Docker build..." && \
 
 # Copy requirements and install dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN echo "📦 Installing Python dependencies..." && \
+    echo "Requirements contents:" && \
+    cat requirements.txt && \
+    pip install --no-cache-dir -r requirements.txt && \
+    echo "✅ Dependencies installed successfully"
 
 # Copy the handler and training module
 COPY handler.py /handler.py
 COPY runpod_handler.py /runpod_handler.py
+
+RUN echo "📋 Final build diagnostics..." && \
+    ls -la / && \
+    python -c "import runpod; print('✅ RunPod import successful')" && \
+    python -c "import handler; print('✅ Handler import successful')"
 
 # RunPod serverless entry point
 CMD ["python", "/handler.py"]
