@@ -1,0 +1,12 @@
+runpod==1.7.13
+transformers==4.36.2
+datasets==2.14.6
+accelerate==0.25.0
+sentencepiece==0.1.99
+soundfile==0.12.1
+jiwer==3.0.3
+huggingface-hub==0.19.4
+httpx==0.25.2
+psutil==5.9.6
+safetensors==0.4.1
+pyarrow==13.0.0
