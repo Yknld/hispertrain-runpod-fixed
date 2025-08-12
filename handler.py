@@ -25,6 +25,7 @@ async def handler(event):
         batch_size = input_data.get('batch_size', 2)
         learning_rate = input_data.get('learning_rate', 2e-05)
         files_manifest = input_data.get('files_manifest', [])
+        job_id = input_data.get('job_id')
 
         print(
             f"📋 Training parameters: model={model_id}, epochs={epochs}, project={project_id}",
@@ -45,7 +46,8 @@ async def handler(event):
             worker_api_key=worker_api_key,
             batch_size=batch_size,
             learning_rate=learning_rate,
-            files_manifest=files_manifest
+            files_manifest=files_manifest,
+            job_id=job_id
         )
 
         print("✅ Training completed successfully", flush=True)

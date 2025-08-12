@@ -423,12 +423,13 @@ class WhisperFileDataset(TorchDataset):
 async def run_training(*, base_model: str, epochs: int, project_id: str, user_id: str,
                        backend_base_url: str, auth_token: str, worker_api_key: str | None = None,
                        batch_size: int = 2, learning_rate: float = 2e-05, 
-                       files_manifest: List[Dict[str, str]] = None) -> Dict[str, Any]:
+                       files_manifest: List[Dict[str, str]] = None, job_id: str | None = None) -> Dict[str, Any]:
     """
     Comprehensive Whisper training with real data loading and robust error handling.
     """
-    # Use deterministic job_id that matches backend expectation
-    job_id = f"train_{project_id}_{int(time.time())}"
+    # Use job_id provided by backend, or generate one if not provided
+    if not job_id:
+        job_id = f"train_{project_id}_{int(time.time())}"
     logger.info(f"🚀 Starting training job {job_id}: {base_model} for {epochs} epochs")
     
     # Initialize progress tracker
